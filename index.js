@@ -45,11 +45,9 @@ const sendEmail = (body) => {
   const mailOptions = {
     from: process.env.email,
     to: email,
-    subject: "Your attached data",
+    subject: body.caption,
     html: `<html>
     <body>
-        <b>Caption: ${body.caption}
-        <br>
         <b>Title: ${body.title}
         <br>
         <b>Name: ${body.name}
