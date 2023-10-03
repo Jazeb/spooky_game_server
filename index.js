@@ -5,10 +5,12 @@ const fileUpload = require("express-fileupload");
 const mongoose = require("mongoose");
 const Schema = require("./schema");
 const fs = require("fs");
+const cors = require("cors");
 
 const app = express();
 
 app.use(express.json());
+app.use(cors({ origin: "*" }));
 app.use(fileUpload({ createParentPath: true }));
 
 app.listen(3000, () => console.log("listening on port 3000"));
