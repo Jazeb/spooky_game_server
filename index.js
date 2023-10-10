@@ -10,7 +10,9 @@ const cors = require("cors");
 const app = express();
 
 app.use(express.json());
-app.use(cors({ origin: "*" }));
+app.use(cors());
+
+//app.use(cors({ origin: "*" }));
 app.use(fileUpload({ createParentPath: true }));
 
 app.listen(3000, () => console.log("listening on port 3000"));
@@ -77,11 +79,12 @@ const saveInDB = async (body) => {
   return await Schema.create(body);
 };
 
+//Schema.find({}).then(a => console.log(a));
 app.post("/", async (req, res) => {
   //   const { caption, name, phone, email, region } = req.body;
 
   //   return await Schema.deleteMany({});
-
+console.log('Recieved...')
   req.body.image1 = req.files.image1;
   req.body.image2 = req.files.image2;
 
