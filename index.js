@@ -14,6 +14,8 @@ app.use(cors());
 
 //app.use(cors({ origin: "*" }));
 app.use(fileUpload({ createParentPath: true }));
+app.set('view engine', 'ejs');
+app.set('views', __dirname + '/views');
 
 app.listen(3000, () => console.log("listening on port 3000"));
 
@@ -101,3 +103,9 @@ console.log('Recieved...')
     .status(200)
     .json({ status: "success", message: "Data posted successfully" });
 });
+
+
+app.get('/data', async (req, res) => {
+  const items = await Schema.find({});
+  res.render('data', { items })
+})
