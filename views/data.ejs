@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bootstrap Table with EJS</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Current Data</h1>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Caption</th>
+          <th>Region</th>
+          <th>Phone</th>
+          
+        </tr>
+      </thead>
+      <tbody>
+        <% for (let item of items) { %>
+          <tr>
+            <td><%= item.title %></td>
+            <td><%= item.name %></td>
+            <td><%= item.email %></td>
+            <td><%= item.caption %></td>
+            <td><%= item.region %></td>
+            <td><%= item.phone %></td>
+            
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
