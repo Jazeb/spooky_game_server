@@ -12,10 +12,10 @@ const app = express();
 app.use(express.json());
 app.use(cors({ origin: "*" }));
 app.use(fileUpload({ createParentPath: true }));
-app.set('view engine', 'ejs');
-app.set('views', __dirname + '/views');
+app.set("view engine", "ejs");
+app.set("views", __dirname + "/views");
 
-app.listen(3000, () => console.log("listening on port 3000"));
+app.listen(5000, () => console.log("listening on port 3000"));
 
 const MONGO_URI = process.env.MONGO_URI;
 const mongoConfig = { useNewUrlParser: true, useUnifiedTopology: true };
@@ -29,8 +29,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const auth = {
+  pass: process.env.MONGO_PASSWORD,
+  user: process.env.MONGO_USER,
+  dbName: process.env.DB_NAME,
+};
+
 mongoose
-  .connect(MONGO_URI, mongoConfig)
+  .connect(MONGO_URI, auth, mongoConfig)
   .then((_) => console.log("MongoDB connected"))
   .catch((err) => console.error(err));
 
@@ -101,8 +107,7 @@ app.post("/", async (req, res) => {
     .json({ status: "success", message: "Data posted successfully" });
 });
 
-
-app.get('/data', async (req, res) => {
-  const items = await Schema.find({});
-  res.render('data', { items })
-})
+app.get("/data", async (req, res) => {
+  const items = await Schema.find({}, { image1: 0, image2: 0 });
+  return res.render("data", { items });
+});
