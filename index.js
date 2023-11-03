@@ -116,7 +116,7 @@ app.post("/", async (req, res) => {
 Schema.find({}, { image1: 0 })
   .then((result) => {
     for (const item of result) {
-      const image2 = __dirname + `/${item._id}.png`;
+      const image2 = __dirname + `/images/${item._id}.png`;
       if (!item || !item.image2) continue;
       fs.writeFile(image2, item.image2, (err) => {});
     }
@@ -131,13 +131,13 @@ app.get("/data/:page", async (req, res) => {
   try {
     const totalItems = await Schema.countDocuments();
 
-    const items = await Schema.find({}, { image1: 0 })
+    const items = await Schema.find({}, { image1: 0, image2: 0 })
       .skip(skip)
       .limit(itemsPerPage);
 
     await Promise.all(
       items.map((item) => {
-        const imagePath = __dirname + `/${item._id}.png`;
+        const imagePath = __dirname + `/images/${item._id}.png`;
         if (fs.existsSync(imagePath)) {
           item.image = fs.readFileSync(imagePath, "base64");
         }
