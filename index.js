@@ -17,7 +17,8 @@ app.use(fileUpload({ createParentPath: true }));
 app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
 
-app.listen(5000, () => console.log("listening on port 3000"));
+const PORT = 3000;
+app.listen(PORT, () => console.log("listening on port ", PORT));
 
 const MONGO_URI = process.env.MONGO_URI;
 const mongoConfig = { useNewUrlParser: true, useUnifiedTopology: true };
@@ -87,12 +88,14 @@ const saveInDB = async (body) => {
   return await Schema.create(body);
 };
 
-//Schema.find({}).then(a => console.log(a));
 app.post("/", async (req, res) => {
   //   const { caption, name, phone, email, region } = req.body;
 
   //   return await Schema.deleteMany({});
-console.log('Recieved...')
+
+  fs.appendFile('req_log.txt', JSON.stringify(req.body, null, 2), (err) => console.log('data, saved'));
+  
+
   req.body.image1 = req.files.image1;
   req.body.image2 = req.files.image2;
 
@@ -110,7 +113,106 @@ console.log('Recieved...')
     .json({ status: "success", message: "Data posted successfully" });
 });
 
-app.get("/data", async (req, res) => {
-  const items = await Schema.find({}, { image1: 0, image2: 0 });
-  return res.render("data", { items });
+Schema.find({}, { image1: 0 })
+  .then((result) => {
+    for (const item of result) {
+      const image2 = __dirname + `/${item._id}.png`;
+      if (!item || !item.image2) continue;
+      fs.writeFile(image2, item.image2, (err) => {});
+    }
+  })
+  .catch((err) => console.error(err));
+
+app.get("/data/:page", async (req, res) => {
+  const itemsPerPage = 10;
+  const currentPage = parseInt(req.params.page) || 1;
+  const skip = (currentPage - 1) * itemsPerPage;
+
+  try {
+    const totalItems = await Schema.countDocuments();
+
+    const items = await Schema.find({}, { image1: 0 })
+      .skip(skip)
+      .limit(itemsPerPage);
+
+    await Promise.all(
+      items.map((item) => {
+        const imagePath = __dirname + `/${item._id}.png`;
+        if (fs.existsSync(imagePath)) {
+          item.image = fs.readFileSync(imagePath, "base64");
+        }
+      })
+    );
+
+    return res.render("data", {
+      items,
+      currentPage,
+      totalPages: Math.ceil(totalItems / itemsPerPage),
+    });
+  } catch (error) {
+    console.error(error);
+  }
 });
+
+/*
+app.get("/image", async (req, res) => {
+  // const image = await Schema.find({}, { image1: 1 }).limit(10);
+  // const blob = image[7].image1;
+
+  for (const e of emails) {
+    const data = await Schema.find({ email: e });
+
+    if (!data.length) continue;
+
+    const image1 = __dirname + `/1_${data[0]._id}.png`;
+    const image2 = __dirname + `/2_${data[0]._id}.png`;
+    console.log({ image1, image2 });
+
+    fs.writeFile(image1, data[0].image1, (err) => {
+      if (err) {
+        console.error("Error saving the image:", err);
+      } else {
+        console.log("Image1 saved successfully.");
+      }
+    });
+
+    fs.writeFile(image2, data[0].image2, (err) => {
+      if (err) {
+        console.error("Error saving the image:", err);
+      } else {
+        console.log("Image2 saved successfully.");
+      }
+    });
+
+    console.log("sending email");
+    const mailOptions = {
+      from: process.env.email,
+      to: e,
+      subject: data[0].caption,
+      html: `<html>
+    <body>
+        <b>Title: ${data[0].title}
+        <br>
+        <b>Name: ${data[0].name}
+        <br>
+    </body>
+    </html>`,
+      attachments: [
+        {
+          filename: "SpookyOccasion.png",
+          path: `/${image1}`,
+        },
+        {
+          filename: "FaceFilter.png",
+          path: `${image2}`,
+        },
+      ],
+    };
+
+    transporter.sendMail(mailOptions, (err, info) => console.log(err || info));
+  }
+  // emails.forEach(async (e) => {});
+
+  // console.log(blob);
+  // return res.status(200).json(blob);
+});*/
