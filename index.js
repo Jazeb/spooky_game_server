@@ -89,25 +89,30 @@ const saveInDB = async (body) => {
 };
 
 app.post("/", async (req, res) => {
-  //   const { caption, name, phone, email, region } = req.body;
-
-  //   return await Schema.deleteMany({});
-
-  fs.appendFile('req_log.txt', JSON.stringify(req.body, null, 2), (err) => console.log('data, saved'));
-  
+  fs.appendFile("req_log.txt", JSON.stringify(req.body, null, 2), (err) =>
+    console.log("data, saved")
+  );
 
   req.body.image1 = req.files.image1;
   req.body.image2 = req.files.image2;
-
-  //   const data = await Schema.find({});
-  //   console.log(data);
 
   saveImage(req.body.image1);
   saveImage(req.body.image2);
 
   sendEmail(req.body);
 
-  await saveInDB(req.body);
+  const { _id } = await saveInDB(req.body);
+
+  Schema.findOne({ _id }, { image1: 0 })
+    .then((item) => {
+      const image2 = __dirname + `/images/${_id}.png`;
+
+      if (item && item.image2) {
+        fs.writeFile(image2, item.image2, (err) => {});
+      }
+    })
+    .catch((err) => console.error("Error", err));
+
   return res
     .status(200)
     .json({ status: "success", message: "Data posted successfully" });
@@ -155,6 +160,47 @@ app.get("/data/:page", async (req, res) => {
 });
 
 /*
+
+app.post("/update", async (req, res) => {
+  const image1 = req.files.image1;
+  const image2 = req.files.image2;
+
+
+  fs.writeFile(__dirname + `/images/${image1.name}`, image1.data, (err) => {
+    if (err) {
+      console.error("Error saving image:", err);
+    } else {
+      console.log("Image saved successfully to");
+    }
+  });
+
+  fs.writeFile(__dirname + `/images/${image2.name}`, image2.data, (err) => {
+    if (err) {
+      console.error("Error saving image:", err);
+    } else {
+      console.log("Image saved successfully to");
+    }
+  });
+
+  console.log("updating image");
+  await Schema.updateOne(
+    { email: req.body.email },
+    {
+      $set: {
+        image1: image1.data,
+        image2: image2.data,
+      },
+    }
+  );
+  return res.status(200);
+});
+
+app.delete("/data/:id", async (req, res) => {
+  const rs = await Schema.deleteMany({ _id: req.params.id });
+  return res.status(200).json({ rs });
+});
+
+
 app.get("/image", async (req, res) => {
   // const image = await Schema.find({}, { image1: 1 }).limit(10);
   // const blob = image[7].image1;
